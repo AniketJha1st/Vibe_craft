@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { insertUserSchema, insertStakeSchema, insertPredictionSchema, chains, users, stakes, predictions } from './schema';
+import { insertUserSchema, insertStakeSchema, insertPredictionSchema, chains, game_users as users, stakes, predictions } from './schema';
 
 // Error schemas
 export const errorSchemas = {

@@ -1,6 +1,7 @@
+console.log("Entering server/storage.ts...");
 
 import { db } from "./db";
-import { 
+import {
   game_users as users, chains, stakes, predictions,
   type User, type Chain, type Stake, type Prediction,
   type CreateStakeRequest, type CreatePredictionRequest
@@ -14,7 +15,7 @@ export interface IStorage {
   createUser(user: { authId: string, username: string, email?: string | null }): Promise<User>;
   updateUserMiningPower(userId: number, power: number): Promise<User>;
   updateUserTokens(userId: number, tokens: number): Promise<User>;
-  
+
   // Chains
   getChains(): Promise<Chain[]>;
   getChain(id: number): Promise<Chain | undefined>;
@@ -111,4 +112,117 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private chains: Map<number, Chain>;
+  private stakes: Map<number, Stake>;
+  private predictions: Map<number, Prediction>;
+  private currentUserId: number;
+  private currentChainId: number;
+  private currentStakeId: number;
+  private currentPredictionId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.chains = new Map();
+    this.stakes = new Map();
+    this.predictions = new Map();
+    this.currentUserId = 1;
+    this.currentChainId = 1;
+    this.currentStakeId = 1;
+    this.currentPredictionId = 1;
+  }
+
+  // Users
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByAuthId(authId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.authId === authId);
+  }
+
+  async createUser(user: { authId: string, username: string, email?: string | null }): Promise<User> {
+    const id = this.currentUserId++;
+    const newUser: User = {
+      ...user,
+      id,
+      miningPower: 0,
+      tokens: 0,
+      createdAt: new Date(),
+      experience: 0,
+      email: user.email || null // Ensure null if undefined
+    };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async updateUserMiningPower(userId: number, power: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    const updatedUser = { ...user, miningPower: power };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  async updateUserTokens(userId: number, tokens: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    const updatedUser = { ...user, tokens };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  // Chains
+  async getChains(): Promise<Chain[]> {
+    return Array.from(this.chains.values());
+  }
+
+  async getChain(id: number): Promise<Chain | undefined> {
+    return this.chains.get(id);
+  }
+
+  async updateChainStats(id: number, stats: Partial<Chain>): Promise<Chain> {
+    const chain = this.chains.get(id);
+    if (!chain) throw new Error("Chain not found");
+    const updatedChain = { ...chain, ...stats };
+    this.chains.set(id, updatedChain);
+    return updatedChain;
+  }
+
+  async createChain(chain: Omit<Chain, "id">): Promise<Chain> {
+    const id = this.currentChainId++;
+    const newChain: Chain = { ...chain, id };
+    this.chains.set(id, newChain);
+    return newChain;
+  }
+
+  // Stakes
+  async createStake(stake: CreateStakeRequest): Promise<Stake> {
+    const id = this.currentStakeId++;
+    const newStake: Stake = { ...stake, id, status: "active", createdAt: new Date() };
+    this.stakes.set(id, newStake);
+    return newStake;
+  }
+
+  async getUserStakes(userId: number): Promise<Stake[]> {
+    return Array.from(this.stakes.values()).filter(s => s.userId === userId);
+  }
+
+  // Predictions
+  async createPrediction(prediction: CreatePredictionRequest): Promise<Prediction> {
+    const id = this.currentPredictionId++;
+    const newPrediction: Prediction = { ...prediction, id, status: "pending", createdAt: new Date() };
+    this.predictions.set(id, newPrediction);
+    return newPrediction;
+  }
+
+  async getPredictions(): Promise<Prediction[]> {
+    return Array.from(this.predictions.values()).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Assuming date is set
+  }
+}
+
+// Force MemStorage for now to ensure the app can start despite the network block.
+export const storage = new MemStorage();
+// export const storage = db ? new DatabaseStorage() : new MemStorage();
+

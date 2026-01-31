@@ -10,9 +10,15 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  console.log("Entering registerRoutes in routes.ts...");
   // === AUTH SETUP ===
+  console.log("Starting auth setup...");
   await setupAuth(app);
-  registerAuthRoutes(app);
+  console.log("Auth setup completed.");
+
+  console.log("Registering auth routes...");
+  await registerAuthRoutes(app);
+  console.log("Auth routes registered.");
 
   // === MOCK DATA GENERATOR ===
   // Update chain stats periodically to simulate live network
@@ -25,7 +31,7 @@ export async function registerRoutes(
       const newDiff = Math.max(1, (chain.difficulty || 0) + (Math.random() - 0.5) * 0.1);
       // Simulate Block Time
       const newBlockTime = new Date();
-      
+
       await storage.updateChainStats(chain.id, {
         tps: Number(newTps.toFixed(2)),
         difficulty: Number(newDiff.toFixed(2)),
@@ -45,7 +51,7 @@ export async function registerRoutes(
     if (!user) {
       user = await storage.createUser({
         authId,
-        username: req.user.claims.email?.split('@')[0] || `User${Math.floor(Math.random()*1000)}`,
+        username: req.user.claims.email?.split('@')[0] || `User${Math.floor(Math.random() * 1000)}`,
         email: req.user.claims.email
       });
     }
@@ -53,7 +59,7 @@ export async function registerRoutes(
   }
 
   // === API ROUTES ===
-  
+
   // Chains
   app.get(api.chains.list.path, async (req, res) => {
     const chains = await storage.getChains();
@@ -69,7 +75,7 @@ export async function registerRoutes(
   // User
   app.get(api.user.me.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     const user = await getOrCreateGameUser(req);
     res.json(user);
   });
@@ -95,7 +101,7 @@ export async function registerRoutes(
       // Deduct tokens, Add power
       await storage.updateUserTokens(user.id, (user.tokens || 0) - cost);
       const updatedUser = await storage.updateUserMiningPower(user.id, (user.miningPower || 0) + powerGain);
-      
+
       res.json(updatedUser);
     } catch (e) {
       res.status(400).json({ message: "Invalid input" });
@@ -114,9 +120,9 @@ export async function registerRoutes(
         ...req.body,
         userId: user.id
       });
-      
+
       if ((user.tokens || 0) < input.amount) {
-         return res.status(400).json({ message: "Not enough tokens" });
+        return res.status(400).json({ message: "Not enough tokens" });
       }
 
       await storage.updateUserTokens(user.id, (user.tokens || 0) - input.amount);
@@ -129,12 +135,12 @@ export async function registerRoutes(
   });
 
   app.get(api.stakes.listMine.path, async (req, res) => {
-     if (!req.isAuthenticated()) return res.status(401).send();
-     const user = await getOrCreateGameUser(req);
-     if (!user) return res.json([]);
-     
-     const stakes = await storage.getUserStakes(user.id);
-     res.json(stakes);
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = await getOrCreateGameUser(req);
+    if (!user) return res.json([]);
+
+    const stakes = await storage.getUserStakes(user.id);
+    res.json(stakes);
   });
 
   // Predictions

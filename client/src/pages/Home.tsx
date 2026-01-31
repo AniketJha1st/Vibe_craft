@@ -4,6 +4,8 @@ import ChainMap from "@/pages/ChainMap";
 import GuardianGame from "@/pages/GuardianGame";
 import MinerTycoon from "@/pages/MinerTycoon";
 import PredictionArena from "@/pages/PredictionArena";
+import NotFound from "@/pages/not-found";
+
 import { Switch, Route } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -19,8 +21,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      redirectToLogin(toast);
+      redirectToLogin(toast as any);
     }
+
   }, [isLoading, isAuthenticated, toast]);
 
   if (isLoading) {
@@ -46,7 +49,9 @@ export default function Home() {
           <Route path="/guardian" component={GuardianGame} />
           <Route path="/miner" component={MinerTycoon} />
           <Route path="/prediction" component={PredictionArena} />
+          <Route component={NotFound} />
         </Switch>
+
       </main>
     </div>
   );

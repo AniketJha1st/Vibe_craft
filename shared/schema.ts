@@ -1,4 +1,3 @@
-
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -11,7 +10,7 @@ export const game_users = pgTable("game_users", {
   username: text("username").notNull(),
   email: text("email"),
   // Game Economy
-  tokens: doublePrecision("tokens").default(1000), 
+  tokens: doublePrecision("tokens").default(1000),
   miningPower: doublePrecision("mining_power").default(0),
   experience: integer("experience").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -52,29 +51,29 @@ export const predictions = pgTable("predictions", {
 
 // === SCHEMAS ===
 
-export const insertUserSchema = createInsertSchema(game_users).omit({ 
-  id: true, 
-  createdAt: true, 
-  tokens: true, 
-  miningPower: true, 
-  experience: true 
+export const insertUserSchema = createInsertSchema(game_users).omit({
+  id: true,
+  createdAt: true,
+  tokens: true,
+  miningPower: true,
+  experience: true
 });
 
-export const insertChainSchema = createInsertSchema(chains).omit({ 
-  id: true 
+export const insertChainSchema = createInsertSchema(chains).omit({
+  id: true
 });
 
-export const insertStakeSchema = createInsertSchema(stakes).omit({ 
-  id: true, 
-  active: true, 
-  startTime: true 
+export const insertStakeSchema = createInsertSchema(stakes).omit({
+  id: true,
+  active: true,
+  startTime: true
 });
 
-export const insertPredictionSchema = createInsertSchema(predictions).omit({ 
-  id: true, 
-  resolved: true, 
-  won: true, 
-  createdAt: true 
+export const insertPredictionSchema = createInsertSchema(predictions).omit({
+  id: true,
+  resolved: true,
+  won: true,
+  createdAt: true
 });
 
 // === EXPLICIT API TYPES ===

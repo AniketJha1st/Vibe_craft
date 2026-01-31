@@ -13,9 +13,12 @@ function Router() {
         window.location.href = "/api/login";
         return null;
       }} />
-      {/* All protected routes are handled inside Home via nested routing/components */}
+      {/* Catch-all for Home which handles its own internal routing and auth */}
       <Route path="/:rest*" component={Home} />
-      <Route component={NotFound} />
+      <Route path="/">
+        <Home />
+      </Route>
+
     </Switch>
   );
 }
